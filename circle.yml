@@ -2,7 +2,7 @@ machine:
   java:
     version: oraclejdk8
   environment:
-    _JAVA_OPTIONS: "-Xmx3G -Xms2G"
+    _JAVA_OPTIONS: "-Xmx4G -Xms4G"
 dependencies:
   pre:
     - sudo apt-get update -y; true
