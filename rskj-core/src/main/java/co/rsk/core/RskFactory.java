@@ -87,6 +87,7 @@ public class RskFactory {
 
     @Bean
     public Rsk getRsk(WorldManager worldManager,
+                      Blockchain blockchain,
                       ChannelManager channelManager,
                       PeerServer peerServer,
                       ProgramInvokeFactory programInvokeFactory,
@@ -113,7 +114,9 @@ public class RskFactory {
         }
         if (rskSystemProperties.isBlocksEnabled()) {
             setupRecorder(rsk, rskSystemProperties.blocksRecorder());
-            setupPlayer(rsk, rskSystemProperties.blocksPlayer());
+            rsk.setIsPlayingBlocks(true);
+            setupPlayer(channelManager, blockchain, rskSystemProperties.blocksPlayer());
+            rsk.setIsPlayingBlocks(false);
         }
         return rsk;
     }
@@ -124,20 +127,13 @@ public class RskFactory {
         }
     }
 
-    private void setupPlayer(RskImpl rsk, String blocksPlayerFileName) {
+    private void setupPlayer(ChannelManager cm, Blockchain bc, String blocksPlayerFileName) {
         if (blocksPlayerFileName != null) {
             new Thread(() -> {
                 try (FileBlockPlayer bplayer = new FileBlockPlayer(blocksPlayerFileName)) {
-                    rsk.setIsPlayingBlocks(true);
-
-                    Blockchain bc = rsk.getWorldManager().getBlockchain();
-                    ChannelManager cm = rsk.getChannelManager();
-
                     connectBlocks(bplayer, bc, cm);
                 } catch (Exception e) {
                     logger.error("Error", e);
-                } finally {
-                    rsk.setIsPlayingBlocks(false);
                 }
             }).start();
         }
